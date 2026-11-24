@@ -4,7 +4,7 @@ import { makeCloudTexture } from './textures.js';
 import { makeRng, clamp } from './random.js';
 
 const KEYS = [
-  { h: 0, top: 0x040818, mid: 0x0b1538, hor: 0x1b2a58, sun: 0x9db8ff, sunI: 0.0, moonI: 0.55, hemi: 0x30406e, ground: 0x151a2b, hemiI: 0.55, fog: 0x16224a },
+  { h: 0, top: 0x040818, mid: 0x0b1538, hor: 0x1b2a58, sun: 0x9db8ff, sunI: 0.0, moonI: 0.95, hemi: 0x4a5e9e, ground: 0x1c2238, hemiI: 1.0, fog: 0x16224a },
   { h: 4.6, top: 0x0d1a44, mid: 0x2a3466, hor: 0x6a5a8a, sun: 0xffa07a, sunI: 0.0, moonI: 0.4, hemi: 0x4a5a8e, ground: 0x2a2a3a, hemiI: 0.6, fog: 0x4a4e7a },
   { h: 5.6, top: 0x3d62a8, mid: 0xe0907f, hor: 0xffc08a, sun: 0xffb27a, sunI: 1.6, moonI: 0, hemi: 0x9aaad4, ground: 0x6d5a52, hemiI: 0.8, fog: 0xf2b58f },
   { h: 8, top: 0x2d7ae0, mid: 0x78b8f2, hor: 0xd6e9ff, sun: 0xfff1d6, sunI: 3.0, moonI: 0, hemi: 0xbcdcff, ground: 0x8a7a66, hemiI: 1.05, fog: 0xcfe3f7 },
@@ -13,8 +13,8 @@ const KEYS = [
   { h: 17.8, top: 0x3a68c4, mid: 0xf0a468, hor: 0xffc68e, sun: 0xffb36e, sunI: 2.5, moonI: 0, hemi: 0xffd2a8, ground: 0x9a6f55, hemiI: 0.9, fog: 0xf5be8c },
   { h: 19, top: 0x23367a, mid: 0xdc5f7c, hor: 0xff8a5c, sun: 0xff7a4a, sunI: 1.1, moonI: 0.15, hemi: 0xc07a9a, ground: 0x4f3a45, hemiI: 0.7, fog: 0xe0728a },
   { h: 20.2, top: 0x0f1a48, mid: 0x4a3a7c, hor: 0xc8607c, sun: 0xff6a4a, sunI: 0.0, moonI: 0.35, hemi: 0x4a548a, ground: 0x2a2535, hemiI: 0.55, fog: 0x4c3a6c },
-  { h: 22, top: 0x050a1e, mid: 0x0c173c, hor: 0x1c2a58, sun: 0x9db8ff, sunI: 0.0, moonI: 0.55, hemi: 0x30406e, ground: 0x151a2b, hemiI: 0.55, fog: 0x16224a },
-  { h: 24, top: 0x040818, mid: 0x0b1538, hor: 0x1b2a58, sun: 0x9db8ff, sunI: 0.0, moonI: 0.55, hemi: 0x30406e, ground: 0x151a2b, hemiI: 0.55, fog: 0x16224a },
+  { h: 22, top: 0x050a1e, mid: 0x0c173c, hor: 0x1c2a58, sun: 0x9db8ff, sunI: 0.0, moonI: 0.95, hemi: 0x4a5e9e, ground: 0x1c2238, hemiI: 1.0, fog: 0x16224a },
+  { h: 24, top: 0x040818, mid: 0x0b1538, hor: 0x1b2a58, sun: 0x9db8ff, sunI: 0.0, moonI: 0.95, hemi: 0x4a5e9e, ground: 0x1c2238, hemiI: 1.0, fog: 0x16224a },
 ];
 
 const SKY_VERT = `

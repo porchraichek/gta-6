@@ -226,3 +226,15 @@ export function makeBlobTexture() {
   x.fillRect(0, 0, 64, 64);
   return tex(c, false);
 }
+
+// Warm radial glow used for street-lamp pools of light at night.
+export function makeGlowTexture() {
+  const [c, x] = canvas(128, 128);
+  const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, 'rgba(255,214,150,1)');
+  g.addColorStop(0.4, 'rgba(255,190,110,0.45)');
+  g.addColorStop(1, 'rgba(255,170,90,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, 128, 128);
+  return tex(c, false);
+}

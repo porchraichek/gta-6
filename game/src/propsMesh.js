@@ -1,7 +1,7 @@
 // Street furniture and scenery as instanced meshes: palms, trees, lamps, containers, umbrellas, signs and traffic lights.
 import * as THREE from 'three';
 import { GeoBuilder } from './geomkit.js';
-import { makeSignTexture } from './textures.js';
+import { makeSignTexture, makeGlowTexture } from './textures.js';
 import { makeRng } from './random.js';
 import { N, LANE, ROAD } from './config.js';
 import { nodeX, nodeZ } from './roadnet.js';
@@ -96,6 +96,16 @@ export function buildProps(scene, city) {
   }, false);
   heads.frustumCulled = false;
   out.lampHeadMat = headMat;
+  const glowGeo = new THREE.PlaneGeometry(15, 15);
+  glowGeo.rotateX(-Math.PI / 2);
+  const glowMat = new THREE.MeshBasicMaterial({ map: makeGlowTexture(), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  const glows = instanced(scene, glowGeo, glowMat, lamps.length, (i) => {
+    const ry = lamps[i][2];
+    return { x: lamps[i][0] + Math.sin(ry) * 3.2, z: lamps[i][1] + Math.cos(ry) * 3.2, y: 0.3, ry };
+  }, false);
+  glows.receiveShadow = false;
+  glows.renderOrder = 3;
+  out.lampGlowMat = glowMat;
 
   // containers & misc boxes with per-instance colour
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);

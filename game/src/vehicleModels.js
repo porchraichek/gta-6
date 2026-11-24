@@ -130,6 +130,8 @@ export function buildVehicleModel(type, paint) {
   const driver = new THREE.Mesh(dgb.build(), new THREE.MeshStandardMaterial({ vertexColors: true }));
   driver.position.set(type === 'van' || type === 'swat' ? W * 0.22 : W * 0.22, sh.belt + 0.05, sh.cf0 - (sh.cf0 - sh.cr1) * 0.5);
   driver.position.z = sh.box ? sh.cf1 - 0.3 : (sh.cf1 + sh.cr1) / 2 + 0.2;
+  driver.position.y = sh.belt - 0.5;
+  driver.scale.setScalar(0.85);
   driver.visible = false;
   group.add(driver);
 

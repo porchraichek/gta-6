@@ -88,7 +88,7 @@ export function setupShot(G, name) {
     G.wanted.setStars(3);
     G.wanted.unseen = 0;
     // police cruisers closing in from behind
-    const specs = [[-21, 0], [-36, -4.2], [-52, 3.8]];
+    const specs = [[-13, 0], [-23, -4.2], [-34, 3.8]];
     for (const [dx, dz] of specs) G.police.spawnCruiser('cruiser', car.x + dx, z + (dz ? dz : 0) * 0, Math.PI / 2);
     for (const v of G.vehicles.list) if (v.ai?.type === 'police') { drive(G, v, 34); }
     // remove any traffic directly in the way
@@ -99,7 +99,7 @@ export function setupShot(G, name) {
     };
     drive(G, car, 36);
     car.fwd = 36;
-    frontCam(G, car, 11, 4.5, 2.3, 16);
+    frontCam(G, car, 9, 4.2, 2.1, 9);
     finish(26);
     return;
   }
@@ -141,27 +141,27 @@ export function setupShot(G, name) {
   }
 
   if (name === 'night') {
-    G.env.setHour(21.2);
+    G.env.setHour(21.3);
     P.addMoney(1450);
-    const z = nodeZ(4) + 4.5;
-    const x0 = nodeX(3) + 20;
-    const car = G.vehicles.spawn('sports', x0, z, Math.PI / 2, { color: 0x3a86ff });
-    P.teleport(x0 - 4, z, Math.PI / 2);
+    const z = nodeZ(5) - 4.5;
+    const x0 = nodeX(8) - 10;
+    const car = G.vehicles.spawn('sports', x0, z, -Math.PI / 2, { color: 0x3a86ff });
+    P.teleport(x0 + 4, z, -Math.PI / 2);
     P.enterVehicle(car);
     P.control = false;
     car.mission = true;
-    G.camera3.yaw = Math.PI / 2;
+    G.camera3.yaw = -Math.PI / 2;
     G.camera3.snap();
     settle(G, 340);
     G.wanted.setStars(2);
     stubMission(G, 'Rush Delivery', 'Deliver the van to Seagull Diner');
-    for (const [dx] of [[-22], [-44]]) G.police.spawnCruiser('cruiser', car.x + dx, z - 4.5, Math.PI / 2);
-    for (const v of G.vehicles.list) if (v.ai?.type === 'police') drive(G, v, 30);
-    for (const v of [...G.vehicles.list]) if (v !== car && v.ai?.type !== 'police' && Math.abs(v.z - z) < 9 && v.x > car.x - 80 && v.x < car.x + 25) G.vehicles.remove(v);
+    for (const [dx, dz] of [[14, 0], [26, 4.2]]) G.police.spawnCruiser('cruiser', car.x + dx, z + dz, -Math.PI / 2);
+    for (const v of G.vehicles.list) if (v.ai?.type === 'police') drive(G, v, 28);
+    for (const v of [...G.vehicles.list]) if (v !== car && v.ai?.type !== 'police' && Math.abs(v.z - z) < 9 && v.x < car.x + 60 && v.x > car.x - 80) G.vehicles.remove(v);
     G.onFrame = () => { car.input.throttle = 0.9; car.input.steer = 0; };
-    drive(G, car, 30);
-    car.fwd = 30;
-    frontCam(G, car, 10, -4.2, 2.0, 14);
+    drive(G, car, 28);
+    car.fwd = 28;
+    frontCam(G, car, 8, -3.8, 1.9, 10);
     finish(24);
     return;
   }

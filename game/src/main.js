@@ -33,6 +33,7 @@ import { createMinimap } from './minimap.js';
 import { createMenus } from './menus.js';
 import { createSave } from './save.js';
 import { createFlow } from './flow.js';
+import { createHeadlights } from './headlights.js';
 import { groundY, lightState } from './roadnet.js';
 import { setupShot } from './shots.js';
 
@@ -88,6 +89,7 @@ G.minimap = createMinimap(G, G.hud.canvas);
 G.menus = createMenus(G, ui);
 G.flow = createFlow(G);
 G.places.setup();
+G.headlights = createHeadlights(G);
 
 // ---- sizing and settings
 function resize() {
@@ -248,6 +250,7 @@ function simulate(dt) {
   G.police.update(dt);
   G.gangs.update(dt);
   G.vehicles.update(dt);
+  G.headlights.update();
   G.actors.collideVehicles(G.vehicles.list);
   G.actors.update(dt);
   G.pickups.update(dt);
@@ -265,6 +268,7 @@ function lighting(dt) {
     G.buildingMats.facade.emissiveIntensity = n * 1.2;
     G.buildingMats.curtain.emissiveIntensity = n * 1.1;
     G.propsMesh.lampHeadMat.color.setRGB(0.4 + n * 2.0, 0.38 + n * 1.5, 0.3 + n * 0.5);
+    G.propsMesh.lampGlowMat.opacity = n * 0.75;
   }
   signalT -= dt;
   if (signalT <= 0) {

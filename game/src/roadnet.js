@@ -77,11 +77,11 @@ export function route(a, b, avoid) {
 }
 
 // Traffic lights: 22 s cycle, offset per intersection. Returns 'green' | 'yellow' | 'red' for travel along axis.
-const CYCLE = 22;
+const CYCLE = 18;
 export function lightState(i, j, axis, time) {
   const t = (time + ((i * 7 + j * 3) % 11)) % CYCLE;
-  const xPhase = t < 9 ? 'green' : t < 11 ? 'yellow' : 'red';
-  const zPhase = t >= 11 && t < 20 ? 'green' : t >= 20 ? 'yellow' : 'red';
+  const xPhase = t < 7 ? 'green' : t < 9 ? 'yellow' : 'red';
+  const zPhase = t >= 9 && t < 16 ? 'green' : t >= 16 ? 'yellow' : 'red';
   return axis === 'x' ? xPhase : zPhase;
 }
 

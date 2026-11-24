@@ -305,7 +305,7 @@ export function createPolice(G) {
     spawnT -= dt;
     // count units
     let cruisers = 0, swats = 0, foots = 0;
-    for (const v of G.vehicles.list) if (v.ai?.type === 'police' && !v.dead) { if (v.type === 'swat') swats++; else cruisers++; }
+    for (const v of G.vehicles.list) if ((v.ai?.type === 'police' || v.ai?.type === 'parked-police') && !v.dead) { if (v.type === 'swat') swats++; else cruisers++; }
     for (const a of G.actors.list) if (a.kind === 'cop' && !a.dead && !a.inVehicle) foots++;
     if (st > 0 && spawnT <= 0) {
       spawnT = 2.2;
@@ -334,7 +334,10 @@ export function createPolice(G) {
           if (v.driver === 'ai') G.traffic.resnap(v);
         }
       }
-      if (v.ai?.type === 'parked-police') v.input.handbrake = true;
+      if (v.ai?.type === 'parked-police') {
+        v.input.handbrake = true;
+        if (Math.hypot(v.x - P.x, v.z - P.z) > 200) G.vehicles.remove(v);
+      }
       if (v.dead && v.occupant) { v.occupant.inVehicle = null; G.actors.damage(v.occupant, 999, v.lastAttacker); v.occupant = null; }
     }
 
