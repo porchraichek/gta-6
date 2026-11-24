@@ -39,13 +39,30 @@ export const CAR_COLORS = [
   0xe63946, 0xf4a261, 0xffd166, 0x2a9d8f, 0x3a86ff, 0xf1faee, 0x1d3557, 0xff6fb5, 0x8338ec, 0x2b2d42, 0xc0c7cf, 0x06d6a0,
 ];
 
+// Weapons. kind: 'melee' | 'gun' | 'throw'. slot: number key (1-6) that selects it.
+// Guns: spread = hip-fire cone (radians), aimSpread multiplier when RMB-aiming, recoil = camera pitch kick,
+// bloom = spread added per shot, reload = seconds, sound = audio profile. zoomFov = scoped field of view.
+// Throwables: mag 1 (one in hand), radius/damage of the blast, fuse seconds (0 = bursts on impact), burn = fire seconds.
 export const WEAPONS = {
-  fists: { name: 'Fists', damage: 18, rate: 0.42, range: 2.1, ammoMax: 0, auto: false, price: 0 },
-  pistol: { name: 'Sidewinder .9', damage: 26, rate: 0.28, range: 90, ammoMax: 120, mag: 12, auto: false, spread: 0.012, price: 250, ammoPrice: 40 },
-  smg: { name: 'Hornet SMG', damage: 14, rate: 0.085, range: 80, ammoMax: 300, mag: 30, auto: true, spread: 0.035, price: 900, ammoPrice: 80 },
-  shotgun: { name: 'Thumper 12', damage: 12, rate: 0.85, range: 40, ammoMax: 60, mag: 6, auto: false, spread: 0.09, pellets: 8, price: 1500, ammoPrice: 90 },
+  fists: { name: 'Fists', kind: 'melee', slot: 1, damage: 18, rate: 0.42, range: 2.1, knock: 2, ammoMax: 0, auto: false, price: 0 },
+  bat: { name: 'Ironwood Bat', kind: 'melee', slot: 1, damage: 40, rate: 0.62, range: 2.7, knock: 3.4, ammoMax: 0, auto: false, price: 180 },
+  pistol: { name: 'Sidewinder .9', kind: 'gun', slot: 2, damage: 26, rate: 0.28, range: 90, ammoMax: 120, mag: 12, auto: false, spread: 0.022, aimSpread: 0.45, recoil: 0.022, bloom: 0.012, reload: 1.1, sound: 'pistol', price: 250, ammoPrice: 40 },
+  smg: { name: 'Hornet SMG', kind: 'gun', slot: 3, damage: 14, rate: 0.085, range: 80, ammoMax: 300, mag: 30, auto: true, spread: 0.04, aimSpread: 0.6, recoil: 0.01, bloom: 0.006, reload: 1.5, sound: 'smg', price: 900, ammoPrice: 80 },
+  shotgun: { name: 'Thumper 12', kind: 'gun', slot: 4, damage: 12, rate: 0.85, range: 40, ammoMax: 60, mag: 6, auto: false, spread: 0.09, aimSpread: 0.8, pellets: 8, recoil: 0.06, bloom: 0, reload: 1.9, sound: 'shotgun', price: 1500, ammoPrice: 90 },
+  rifle: { name: 'Kestrel AR-7', kind: 'gun', slot: 5, damage: 24, rate: 0.11, range: 130, ammoMax: 240, mag: 30, auto: true, spread: 0.035, aimSpread: 0.4, recoil: 0.014, bloom: 0.005, reload: 1.7, sound: 'smg', price: 2400, ammoPrice: 120 },
+  marksman: { name: 'Heron Longreach', kind: 'gun', slot: 5, damage: 90, rate: 0.95, range: 280, ammoMax: 40, mag: 5, auto: false, spread: 0.05, aimSpread: 0.03, recoil: 0.07, bloom: 0, reload: 2.2, sound: 'shotgun', zoomFov: 20, price: 3200, ammoPrice: 150 },
+  grenade: { name: 'Thunder Egg', kind: 'throw', slot: 6, damage: 140, radius: 7.5, fuse: 2.2, rate: 0.9, range: 40, ammoMax: 8, mag: 1, auto: false, reload: 0, price: 600, ammoPrice: 300 },
+  firebomb: { name: 'Bottle Blaze', kind: 'throw', slot: 6, damage: 24, radius: 4.2, fuse: 0, burn: 6, rate: 0.9, range: 40, ammoMax: 8, mag: 1, auto: false, reload: 0, price: 400, ammoPrice: 220 },
 };
-export const WEAPON_ORDER = ['fists', 'pistol', 'smg', 'shotgun'];
+// Selection / mouse-wheel order. Keys 1-6 pick a slot; pressing again cycles weapons sharing that slot.
+export const WEAPON_ORDER = ['fists', 'bat', 'pistol', 'smg', 'shotgun', 'rifle', 'marksman', 'grenade', 'firebomb'];
+
+// Player on-foot tuning.
+export const PLAYER_MOVE = {
+  walk: 5.0, sprint: 7.9, aimWalk: 3.0, crouch: 2.4, accel: 9, airAccel: 2.5,
+  sprintDrain: 1 / 6, staminaRegen: 1 / 3.5, rollCost: 0.22, rollSpeed: 9.5, rollTime: 0.5, rollInvuln: 0.32,
+  jump: 7.2, climbMax: 2.9, regenTo: 0.5, regenDelay: 6, regenRate: 3,
+};
 
 export const WANTED_LABEL = ['Clean', 'Hot', 'Wanted', 'Dangerous', 'Armed & Dangerous', 'Public Enemy'];
 

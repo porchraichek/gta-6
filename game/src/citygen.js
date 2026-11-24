@@ -2,6 +2,7 @@
 import { N, BLOCK, PITCH, HALF, ISLAND } from './config.js';
 import { makeRng } from './random.js';
 import { nodeX, nodeZ } from './roadnet.js';
+import { dressCity } from './cityDressing.js';
 
 export const blockCX = (i) => -HALF + (i + 0.5) * PITCH;
 export const blockCZ = (j) => -HALF + (j + 0.5) * PITCH;
@@ -96,6 +97,7 @@ export function generateCity(seed = 20260101) {
   }
 
   streetFurniture(city, rng);
+  dressCity(city, districtOf);
   return city;
 }
 
@@ -248,10 +250,8 @@ function streetFurniture(city, rng) {
     if (rng.chance(0.25)) city.palms.push([-HALF - 30 - rng.range(0, 25), k]);
     if (rng.chance(0.25)) city.palms.push([k, -HALF - 30 - rng.range(0, 25)]);
   }
-  for (let k = 0; k < 40; k++) {
-    const x = HALF + 14 + rng.range(0, 40), z = rng.range(-HALF + 20, HALF - 20);
-    city.props.push({ umbrella: true, x, z, color: rng.pick([0xff5d73, 0xffd166, 0x4cc9f0, 0xffffff, 0x80ed99]) });
-  }
+  // (beach umbrellas are placed by cityDressing; these draws keep the seeded layout stable)
+  for (let k = 0; k < 40; k++) { rng.range(0, 40); rng.range(-HALF + 20, HALF - 20); rng.pick([0]); }
   // palm and lamp colliders (thin posts)
   for (const [x, z] of city.palms) city.colliders.push({ x0: x - 0.35, x1: x + 0.35, z0: z - 0.35, z1: z + 0.35, h: 8, solid: true, pole: true });
   for (const [x, z] of city.lamps) city.colliders.push({ x0: x - 0.25, x1: x + 0.25, z0: z - 0.25, z1: z + 0.25, h: 8, solid: true, pole: true });

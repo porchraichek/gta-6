@@ -2,14 +2,14 @@
 import * as THREE from 'three';
 import { makeRng } from './random.js';
 
-function canvas(w, h) {
+export function canvas(w, h) {
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
   return [c, c.getContext('2d')];
 }
 
-function tex(c, repeat = true, srgb = true) {
+export function tex(c, repeat = true, srgb = true) {
   const t = new THREE.CanvasTexture(c);
   if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
@@ -17,7 +17,7 @@ function tex(c, repeat = true, srgb = true) {
   return t;
 }
 
-function noise(ctx, w, h, amount, rng) {
+export function noise(ctx, w, h, amount, rng) {
   const img = ctx.getImageData(0, 0, w, h);
   for (let i = 0; i < img.data.length; i += 4) {
     const n = (rng() - 0.5) * amount;

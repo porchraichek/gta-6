@@ -14,12 +14,52 @@ export function resolveAt(G, at, m) {
   return at;
 }
 
+// Lines can be an array or a function (flags, m) => array, so dialogue can react to earlier story choices.
+export const resolveLines = (lines, m) => (typeof lines === 'function' ? lines(m.G.missions.state.flags, m) : lines) || [];
+
+// Hand a mission vehicle back to the world so traffic can despawn it later.
+export function releaseVehicle(G, v) {
+  if (!v || v.removed) return;
+  v.mission = false;
+  if (v.driver === 'ai') {
+    v.ai = null;
+    v.driver = null;
+    v.parked = true;
+    v.input.throttle = 0;
+    v.input.handbrake = true;
+    if (v.occupant && !v.occupant.removed) G.actors.remove(v.occupant);
+    v.occupant = null;
+  }
+}
+
 export const say = (lines) => ({
-  begin(m) { m.G.dialogue.play(lines); },
+  kind: 'say',
+  begin(m) { m.G.dialogue.play(resolveLines(lines, m)); },
   update(m) { return m.G.dialogue.busy ? undefined : 'done'; },
+  debugSolve(m) { m.G.dialogue.skip(); },
 });
 
-export const goTo = ({ at, text, radius = 4.5, needVehicle = false, missionVehicle = false, time = null, color = 0xffd166, onArrive }) => ({
+// A two-option story choice. Stores the picked option id in missions.state.flags[flag], then plays that option's lines.
+export const choice = ({ flag, prompt, options }) => ({
+  kind: 'choice',
+  begin(m) {
+    this.picked = null;
+    m.objective = { text: prompt, x: null, z: null };
+    m.G.dialogue.choose(prompt, options.map((o) => o.label), (i) => {
+      const o = options[i];
+      m.G.missions.state.flags[flag] = o.id;
+      o.effect?.(m);
+      m.G.dialogue.play(resolveLines(o.lines || [], m));
+      this.picked = o;
+    });
+  },
+  update(m) { if (this.picked && !m.G.dialogue.busy) return 'done'; },
+  end(m) { if (m.G.dialogue.choice) m.G.dialogue.clear(); },
+  debugSolve(m) { if (!this.picked) m.G.dialogue.pick(0); m.G.dialogue.skip(); },
+});
+
+export const goTo = ({ at, text, radius = 4.5, needVehicle = false, missionVehicle = false, time = null, color = 0xffd166, onArrive, damageLimit = 0, damageFail = 'The vehicle was wrecked.' }) => ({
+  kind: 'goTo',
   begin(m) {
     const G = m.G;
     const p = resolveAt(G, at, m);
@@ -37,6 +77,10 @@ export const goTo = ({ at, text, radius = 4.5, needVehicle = false, missionVehic
     }
     if (missionVehicle && m.vehicle) {
       if (m.vehicle.dead) return { fail: 'The vehicle was destroyed.' };
+      if (damageLimit && m.vehicle.health < m.vehicle.maxHealth * damageLimit) {
+        G.vehicles.explode(m.vehicle);
+        return { fail: damageFail };
+      }
       if (P.vehicle !== m.vehicle) {
         m.objective.text = `Get back in the ${m.vehicle.def.name}`;
         m.objective.x = m.vehicle.x; m.objective.z = m.vehicle.z;
@@ -52,14 +96,34 @@ export const goTo = ({ at, text, radius = 4.5, needVehicle = false, missionVehic
       return 'done';
     }
   },
+  debugSolve(m) {
+    const G = m.G, P = G.player;
+    if (missionVehicle && m.vehicle && P.vehicle !== m.vehicle) P.enterVehicle(m.vehicle);
+    if (needVehicle && P.mode !== 'car') {
+      const v = G.vehicles.spawn('compact', P.x, P.z, 0);
+      P.enterVehicle(v);
+    }
+    teleportPlayer(G, this.p.x, this.p.z);
+  },
 });
 
-export const getVehicle = ({ type, at, heading = 0, color, text, name, hot = false }) => ({
+// Move the player (and their car) to a point; used by debug helpers and tests.
+export function teleportPlayer(G, x, z) {
+  const P = G.player;
+  if (P.mode === 'car') {
+    const v = P.vehicle;
+    v.x = x; v.z = z; v.vx = v.vz = 0; v.fwd = 0;
+  } else P.teleport(x, z);
+}
+
+export const getVehicle = ({ type, at, heading = 0, color, text, name, health }) => ({
+  kind: 'getVehicle',
   begin(m) {
     const G = m.G;
     const p = resolveAt(G, at, m);
     const v = G.vehicles.spawn(type, p.x, p.z, heading, { color, mission: true });
     v.missionName = name;
+    if (health) v.health = v.maxHealth = health;
     m.vehicle = v;
     m.cleanupVeh = v;
     this.marker = G.markers.add({ x: p.x, z: p.z, color: 0x66e0ff, radius: 3, blip: true, icon: 'car', pillar: true, height: 30 });
@@ -77,10 +141,17 @@ export const getVehicle = ({ type, at, heading = 0, color, text, name, hot = fal
       return 'done';
     }
   },
+  debugSolve(m) { const P = m.G.player; if (P.mode === 'car') P.exitVehicle(true); P.enterVehicle(m.vehicle); },
 });
+
+// Kill a list of actors instantly (debug helpers and tests).
+export function killAll(G, list) {
+  for (const a of list || []) if (!a.dead && !a.removed) G.actors.damage(a, 1e6, null);
+}
 
 // Kill every thug in a group placed at `at`.
 export const kill = ({ at, count, weapon = 'fists', text, spread = 9, aggro = 26, health = 70, armor = 0, damage, boss }) => ({
+  kind: 'kill',
   begin(m) {
     const G = m.G;
     const p = resolveAt(G, at, m);
@@ -99,9 +170,11 @@ export const kill = ({ at, count, weapon = 'fists', text, spread = 9, aggro = 26
     if (alive) { m.objective.x = alive.x; m.objective.z = alive.z; this.marker.group.position.set(alive.x, 0.2, alive.z); this.marker.x = alive.x; this.marker.z = alive.z; }
     if (left === 0) return 'done';
   },
+  debugSolve(m) { killAll(m.G, m.enemies); },
 });
 
 export const holdAt = ({ at, seconds, text, radius = 6 }) => ({
+  kind: 'holdAt',
   begin(m) {
     const G = m.G;
     const p = resolveAt(G, at, m);
@@ -112,13 +185,15 @@ export const holdAt = ({ at, seconds, text, radius = 6 }) => ({
   },
   update(m, dt) {
     const P = m.G.player;
-    if (Math.hypot(P.x - this.p.x, P.z - this.p.z) < 6) this.t += dt;
+    if (Math.hypot(P.x - this.p.x, P.z - this.p.z) < radius) this.t += dt;
     m.progress = Math.min(1, this.t / seconds);
     if (this.t >= seconds) { m.progress = null; return 'done'; }
   },
+  debugSolve(m) { teleportPlayer(m.G, this.p.x, this.p.z); this.t = seconds; },
 });
 
 export const escapeWanted = ({ stars, text }) => ({
+  kind: 'escapeWanted',
   begin(m) {
     if (stars) m.G.wanted.setStars(stars);
     m.objective = { text, x: null, z: null };
@@ -127,24 +202,30 @@ export const escapeWanted = ({ stars, text }) => ({
   update(m) {
     if (m.G.wanted.stars === 0) { m.evading = false; return 'done'; }
   },
+  debugSolve(m) { m.G.wanted.clear(); },
 });
 
 export const instant = (fn) => ({
+  kind: 'instant',
   begin(m) { fn(m); },
   update() { return 'done'; },
 });
 
 export const wait = (seconds) => ({
+  kind: 'wait',
   begin() { this.t = seconds; },
+  debugSolve() { this.t = 0; },
   update(m, dt) { this.t -= dt; if (this.t <= 0) return 'done'; },
 });
 
 // A fleeing target vehicle the player must wreck before it escapes.
-export const chase = ({ type, at, heading = 0, text, color = 0x8338ec, speedFactor = 0.82, escapeDist = 230, boss = false }) => ({
+export const chase = ({ type, at, heading = 0, text, color = 0x8338ec, speedFactor = 0.82, escapeDist = 230, boss = false, health }) => ({
+  kind: 'chase',
   begin(m) {
     const G = m.G;
     const p = resolveAt(G, at, m);
     const v = G.vehicles.spawn(type, p.x, p.z, heading, { color, mission: true });
+    if (health) v.health = v.maxHealth = health;
     v.driver = 'ai';
     const driver = G.gangs.spawn(p.x, p.z, 1, { weapon: 'pistol', health: boss ? 120 : 60, aggro: 0 })[0];
     driver.inVehicle = v;
@@ -187,4 +268,5 @@ export const chase = ({ type, at, heading = 0, text, color = 0x8338ec, speedFact
     if (d > escapeDist) return { fail: 'The target got away.' };
   },
   end(m) { /* wreck is cleaned up by the mission */ },
+  debugSolve(m) { if (!this.v.dead) m.G.vehicles.explode(this.v); },
 });

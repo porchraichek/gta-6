@@ -25,6 +25,14 @@ export class GeoBuilder {
     this.tz = 0;
     this.cos = 1;
     this.sin = 0;
+    this.tagv = null; // optional per-vertex vec3 (e.g. facade atlas cell + seed); attribute 'tag' when used
+    this.tags = [];
+  }
+
+  // Set the per-vertex tag written for following geometry (null disables). Any tagged geometry adds a 'tag' attribute.
+  tag(a = 0, b = 0, c = 0) {
+    this.tagv = [a, b, c];
+    return this;
   }
 
   // Set a local transform (translate then yaw) applied to everything added afterwards.
@@ -64,6 +72,32 @@ export class GeoBuilder {
     }
     if (uvs) for (const u of uvs) this.uv.push(u[0], u[1]);
     else this.uv.push(0, 0, 0, 0, 0, 0);
+    if (this.tagv || this.tags.length) {
+      if (this.tags.length < (this.pos.length / 3 - 3) * 3) this.tags.length = (this.pos.length / 3 - 3) * 3; // back-fill untagged
+      const t = this.tagv || [0, 0, 0];
+      this.tags.push(t[0], t[1], t[2], t[0], t[1], t[2], t[0], t[1], t[2]);
+    }
+  }
+
+  // Square-section beam between two world points (spokes, braces, poles at an angle).
+  beam(a, b, size, color) {
+    const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2];
+    const len = Math.hypot(dx, dy, dz) || 1;
+    const f = [dx / len, dy / len, dz / len];
+    const up = Math.abs(f[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0];
+    let r = [f[1] * up[2] - f[2] * up[1], f[2] * up[0] - f[0] * up[2], f[0] * up[1] - f[1] * up[0]];
+    const rl = Math.hypot(...r);
+    r = r.map((v) => (v / rl) * size / 2);
+    const u = [f[1] * r[2] - f[2] * r[1], f[2] * r[0] - f[0] * r[2], f[0] * r[1] - f[1] * r[0]]; // |u| = |r| since f is unit
+    const P = (p, sr, su) => this.P(p[0] + r[0] * sr + u[0] * su, p[1] + r[1] * sr + u[1] * su, p[2] + r[2] * sr + u[2] * su);
+    const c = this.P((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
+    const s = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
+    for (let i = 0; i < 4; i++) {
+      const j = (i + 1) % 4;
+      const A0 = P(a, ...s[i]), A1 = P(a, ...s[j]), B0 = P(b, ...s[i]), B1 = P(b, ...s[j]);
+      this.rawTri(A0, B0, B1, color, null, c);
+      this.rawTri(A0, B1, A1, color, null, c);
+    }
   }
 
   // Quad in local space, CCW seen from outside. uvs optional array of 4 [u,v].
@@ -176,8 +210,43 @@ export class GeoBuilder {
     g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2));
+    if (this.tags.length) {
+      if (this.tags.length < this.pos.length) this.tags.length = this.pos.length;
+      g.setAttribute('tag', new THREE.Float32BufferAttribute(Float32Array.from(this.tags, (v) => v || 0), 3));
+    }
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
+  }
+}
+
+// Spatial bucketing of GeoBuilders so big merged layers still frustum-cull in chunks.
+export class ChunkedGeo {
+  constructor(chunkSize = 270, origin = -660) {
+    this.size = chunkSize;
+    this.origin = origin;
+    this.map = new Map();
+  }
+
+  at(x, z) {
+    const k = `${Math.floor((x - this.origin) / this.size)},${Math.floor((z - this.origin) / this.size)}`;
+    let gb = this.map.get(k);
+    if (!gb) this.map.set(k, (gb = new GeoBuilder()));
+    return gb;
+  }
+
+  // Build one mesh per non-empty chunk with the given material and add them to `parent`.
+  addTo(parent, material, { cast = true, receive = true, order } = {}) {
+    const out = [];
+    for (const gb of this.map.values()) {
+      if (!gb.triCount) continue;
+      const m = new THREE.Mesh(gb.build(), material);
+      m.castShadow = cast;
+      m.receiveShadow = receive;
+      if (order !== undefined) m.renderOrder = order;
+      parent.add(m);
+      out.push(m);
+    }
+    return out;
   }
 }
