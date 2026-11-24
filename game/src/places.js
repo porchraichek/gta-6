@@ -107,7 +107,6 @@ export function createPlaces(G) {
     for (const id of ['pistol', 'smg', 'shotgun']) {
       const w = WEAPONS[id];
       if (!P.weapons[id]) {
-        if (id === 'pistol') continue;
         items.push({ id: 'w-' + id, label: `${w.name}`, desc: `Damage ${w.damage}${w.pellets ? 'x' + w.pellets : ''}, ${w.auto ? 'full auto' : 'semi'}`, price: w.price });
       } else items.push({ id: 'a-' + id, label: `${w.name} ammo`, desc: `+${Math.round(w.mag * 3)} rounds (reserve ${P.reserve[id] || 0}/${w.ammoMax})`, price: w.ammoPrice });
     }

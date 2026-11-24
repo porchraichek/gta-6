@@ -184,6 +184,7 @@ export function createVehicles(G) {
       const A = list[a];
       for (let b = a + 1; b < list.length; b++) {
         const B = list[b];
+        if ((A.ghost && B.driver !== 'player') || (B.ghost && A.driver !== 'player')) continue;
         const dx = B.x - A.x, dz = B.z - A.z;
         const reach = (A.def.length + B.def.length) / 2 + 0.5;
         if (dx > reach || dx < -reach || dz > reach || dz < -reach) continue;

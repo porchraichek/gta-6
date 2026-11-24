@@ -5,7 +5,7 @@ import { blockCX, blockCZ } from './citygen.js';
 import { randomCivilianOutfit } from './humanoid.js';
 
 const TARGET = 34;
-const INSET = 2.3;
+const INSET = 3.4;
 
 export function createPedestrians(G) {
   const Pd = {};

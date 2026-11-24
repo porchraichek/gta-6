@@ -169,11 +169,13 @@ export function createTraffic(G) {
     if (turning) desired = Math.min(desired, 7);
     desired *= 1 - clamp(Math.abs(err) / 1.6, 0, 0.7);
 
-    // obstacle scan ahead
+    // obstacle scan ahead (a car that has been blocked for a while ghosts through jams)
     const scan = 7 + v.speed * 1.5;
     let gap = Infinity;
+    if (ai.ghostT > 0) ai.ghostT -= dt;
+    v.ghost = ai.ghostT > 0;
     for (const o of G.vehicles.list) {
-      if (o === v || o.removed) continue;
+      if (o === v || o.removed || (v.ghost && o.driver !== 'player')) continue;
       const dx = o.x - px, dz = o.z - pz;
       const f = dx * s + dz * c;
       if (f < 0 || f > scan + 4) continue;
@@ -206,6 +208,8 @@ export function createTraffic(G) {
     v.input.throttle = clamp(dv * 0.5, -1, 0.9);
     if (desired < 0.1 && v.fwd < 0.6) v.input.throttle = 0;
     v.input.handbrake = desired === 0 && v.speed < 1;
+    if (v.speed < 0.6 && gap < Infinity) ai.blockedT = (ai.blockedT || 0) + dt; else ai.blockedT = 0;
+    if (ai.blockedT > 6) { ai.ghostT = 5; ai.blockedT = 0; }
     // stuck recovery
     if (v.speed < 0.6 && gap === Infinity) ai.stuck += dt; else ai.stuck = 0;
     if (ai.stuck > 5) resnap(v);

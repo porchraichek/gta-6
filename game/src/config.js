@@ -41,7 +41,7 @@ export const CAR_COLORS = [
 
 export const WEAPONS = {
   fists: { name: 'Fists', damage: 18, rate: 0.42, range: 2.1, ammoMax: 0, auto: false, price: 0 },
-  pistol: { name: 'Sidewinder .9', damage: 26, rate: 0.28, range: 90, ammoMax: 120, mag: 12, auto: false, spread: 0.012, price: 0, ammoPrice: 40 },
+  pistol: { name: 'Sidewinder .9', damage: 26, rate: 0.28, range: 90, ammoMax: 120, mag: 12, auto: false, spread: 0.012, price: 250, ammoPrice: 40 },
   smg: { name: 'Hornet SMG', damage: 14, rate: 0.085, range: 80, ammoMax: 300, mag: 30, auto: true, spread: 0.035, price: 900, ammoPrice: 80 },
   shotgun: { name: 'Thumper 12', damage: 12, rate: 0.85, range: 40, ammoMax: 60, mag: 6, auto: false, spread: 0.09, pellets: 8, price: 1500, ammoPrice: 90 },
 };
