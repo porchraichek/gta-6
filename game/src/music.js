@@ -141,8 +141,10 @@ export function createMusic(audio) {
     else M.start(n);
   };
   // 'menu' | 'car' | 'foot' ; sets target loudness
+  let lastCtx = null;
   M.setContext = (ctxName) => {
-    if (!ensure()) return;
+    if (!ensure() || ctxName === lastCtx) return;
+    lastCtx = ctxName;
     if (ctxName === 'menu' && !M.playing) M.start(0);
     if (ctxName === 'car' && !M.playing && M.station === -1 && !M.userOff) M.start(0);
     const target = ctxName === 'menu' ? 0.8 : ctxName === 'car' ? 1 : 0.28;

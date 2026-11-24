@@ -37,8 +37,8 @@ export function createCamera(G) {
       C.yaw -= inp.mouseDX * C.sens;
       C.pitch = clamp(C.pitch - inp.mouseDY * C.sens, -1.1, 0.7);
       // arrow keys / look as backup
-      const kx = G.input.axis('ArrowLeft', 'ArrowRight');
-      if (kx) { C.yaw -= kx * dt * 2; C.mouseIdle = 0; }
+      const kx = G.input.axis('ArrowLeft', 'ArrowRight'), ky = G.input.axis('ArrowUp', 'ArrowDown');
+      if (kx || ky) { C.yaw -= kx * dt * 2; C.pitch = clamp(C.pitch - ky * dt * 1.2, -1.1, 0.7); C.mouseIdle = 0; }
     }
     C.mouseIdle += dt;
     let tx, ty, tz, dist, height, side = 0, fovT = 62;
@@ -104,8 +104,7 @@ export function createCamera(G) {
     camera.position.y += (Math.random() - 0.5) * sh * 0.8;
     camera.position.z += (Math.random() - 0.5) * sh * 0.8;
     // look target ahead of the player along the view direction
-    look.set(tx + fx * cp * 14 + rx * side * 0.6, ty - sp * -14 * -1 + 0.2 + C.kickV * 6, tz + fz * cp * 14 + rz * side * 0.6);
-    look.y = ty + sp * 14 + 0.2 - 0.0 + C.kickV * 6;
+    look.set(tx + fx * cp * 14 + rx * side * 0.6, ty + sp * 14 + 0.2 + C.kickV * 6, tz + fz * cp * 14 + rz * side * 0.6);
     camera.lookAt(look);
     C.targetPos.set(tx, ty, tz);
   };

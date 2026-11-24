@@ -1,5 +1,4 @@
 // Vehicle manager: arcade driving physics, damage, fire/explosions, skidding and car-vs-world/car collisions.
-import * as THREE from 'three';
 import { VEHICLES } from './config.js';
 import { buildVehicleModel } from './vehicleModels.js';
 import { clamp, damp, rand } from './random.js';
@@ -309,4 +308,3 @@ export function createVehicles(G) {
   return V;
 }
 
-export { THREE };

@@ -100,7 +100,12 @@ export function setupShot(G, name) {
     drive(G, car, 36);
     car.fwd = 36;
     frontCam(G, car, 9, 4.2, 2.1, 9);
-    finish(26);
+    settle(G, 16);
+    // a wreck going up behind the pursuers
+    const wreck = G.vehicles.spawn('van', car.x - 50, z - 5, 0.3, { color: 0xf1faee, mission: true });
+    wreck.mission = true;
+    G.vehicles.explode(wreck);
+    finish(8);
     return;
   }
 
@@ -167,26 +172,32 @@ export function setupShot(G, name) {
   }
 
   if (name === 'beach') {
-    G.env.setHour(15.2);
+    G.env.setHour(16.6);
     P.addMoney(980);
-    const lm = G.city.landmarks.diner;
-    P.teleport(lm.x - 4, lm.z + 3, 0.6);
-    G.camera3.yaw = 0.9;
-    G.camera3.pitch = -0.12;
+    const x = nodeX(12) - 4.5;
+    const z0 = nodeZ(4);
+    const car = G.vehicles.spawn('sports', x, z0, 0, { color: 0xffd166 });
+    P.teleport(x, z0 - 4, 0);
+    P.enterVehicle(car);
+    P.control = false;
+    car.mission = true;
+    G.camera3.yaw = 0;
     G.camera3.snap();
-    P.selectWeapon('fists');
     settle(G, 360);
-    // park a flashy car and walk near it
-    const v = G.vehicles.spawn('sports', lm.x + 10, lm.z + 14.5, Math.PI / 2, { color: 0xffd166 });
-    v.parked = true;
-    G.vehicles.spawn('pickup', lm.x + 2, lm.z + 14.8, Math.PI / 2, { color: 0x06d6a0 }).parked = true;
-    P.actor.faceHeading = null;
-    G.onFrame = () => { G.input.state.mouseDX = 0; };
+    G.camera3.cinematic = (dt, cam) => {
+      cam.position.set(car.x + 7.5, 3.1, car.z - 10);
+      cam.lookAt(car.x - 4, 1.6, car.z + 14);
+      cam.fov = 62;
+      cam.updateProjectionMatrix();
+    };
     stubMission(G, 'Chase the Rat', "Wreck Sal's purple Marlin before he gets away");
-    // face the sea & traffic
-    G.camera3.yaw = 1.0;
-    finish(30);
+    for (const v of [...G.vehicles.list]) if (v !== car && Math.abs(v.x - x) < 8 && v.z > car.z - 16 && v.z < car.z + 70) G.vehicles.remove(v);
+    G.onFrame = () => { car.input.throttle = 0.6; car.input.steer = 0; };
+    drive(G, car, 17);
+    car.fwd = 17;
+    finish(18);
     return;
   }
+
   finish(10);
 }

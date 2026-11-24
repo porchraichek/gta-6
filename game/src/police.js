@@ -298,6 +298,31 @@ export function createPolice(G) {
     }
   }
 
+  // ---------- roadblocks: two cruisers parked across the road ahead of a fleeing player
+  Po.roadblock = () => {
+    const P = G.player;
+    if (P.mode !== 'car' || P.vehicle.speed < 8) return;
+    const v = P.vehicle;
+    const horiz = Math.abs(v.vx) > Math.abs(v.vz);
+    const sign = horiz ? Math.sign(v.vx) : Math.sign(v.vz);
+    const n = nearestNode(v.x + v.vx * 2.5, v.z + v.vz * 2.5);
+    // choose an intersection about 150 m ahead along the current road
+    let bx = horiz ? nodeX(n.i) + sign * 45 : nodeX(n.i);
+    let bz = horiz ? nodeZ(n.j) : nodeZ(n.j) + sign * 45;
+    bx = Math.max(-HALF + 20, Math.min(HALF - 20, bx));
+    bz = Math.max(-HALF + 20, Math.min(HALF - 20, bz));
+    const across = horiz ? 0 : Math.PI / 2;
+    for (const off of [-4.6, 4.6]) {
+      const x = horiz ? bx + 0 : bx + off, z = horiz ? bz + off : bz;
+      const c = Po.spawnCruiser('cruiser', x, z, horiz ? 0 : Math.PI / 2);
+      void across;
+      deploy(c);
+      c.input.handbrake = true;
+    }
+    G.hud.notify('Roadblock ahead!', 'warn');
+  };
+  G.events.on('wantedChanged', (now, before) => { if (now >= 3 && now > before) Po.roadblock(); });
+
   // ---------- main update
   Po.update = (dt) => {
     const P = G.player;

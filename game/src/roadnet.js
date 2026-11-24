@@ -17,17 +17,13 @@ export function onRoad(x, z, margin = 0) {
   return (inX && inZ) && (dx < ROAD / 2 + margin || dz < ROAD / 2 + margin);
 }
 
+// Travel directions as grid steps: East, West, South (+z), North (-z).
 export const DIRS = [
-  { dx: 1, dj: 0, di: 1, name: 'E', axis: 'x' },
-  { dx: -1, dj: 0, di: -1, name: 'W', axis: 'x' },
-  { dx: 0, dj: 1, di: 0, name: 'S', axis: 'z' },
-  { dx: 0, dj: -1, di: 0, name: 'N', axis: 'z' },
+  { di: 1, dj: 0, name: 'E', axis: 'x' },
+  { di: -1, dj: 0, name: 'W', axis: 'x' },
+  { di: 0, dj: 1, name: 'S', axis: 'z' },
+  { di: 0, dj: -1, name: 'N', axis: 'z' },
 ];
-// DIRS entries use (di,dj) integer steps; fix dj for horizontal ones:
-DIRS[0].di = 1; DIRS[0].dj = 0;
-DIRS[1].di = -1; DIRS[1].dj = 0;
-DIRS[2].di = 0; DIRS[2].dj = 1;
-DIRS[3].di = 0; DIRS[3].dj = -1;
 
 export function neighbors(i, j) {
   const out = [];

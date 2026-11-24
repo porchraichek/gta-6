@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GeoBuilder } from './geomkit.js';
 import { makeSignTexture, makeGlowTexture } from './textures.js';
 import { makeRng } from './random.js';
-import { N, LANE, ROAD } from './config.js';
+import { N, ROAD } from './config.js';
 import { nodeX, nodeZ } from './roadnet.js';
 
 function palmGeometry() {
@@ -215,5 +215,4 @@ function buildSignals(scene, out) {
     }
     mesh.instanceColor.needsUpdate = true;
   };
-  void LANE;
 }

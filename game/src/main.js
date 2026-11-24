@@ -215,6 +215,10 @@ G.toTitle = () => {
 G.input.state.onLockChange = (locked) => {
   if (!locked && G.state === 'play' && !params.has('shot')) G.pause();
 };
+window.addEventListener('pointerdown', () => {
+  G.audio.init();
+  if (G.state === 'title') G.music.setContext('menu');
+});
 window.addEventListener('blur', () => { if (G.state === 'play' && !params.has('shot')) G.pause(); });
 window.addEventListener('keydown', (e) => { if (['F5', 'F9', 'Tab'].includes(e.code)) e.preventDefault(); });
 

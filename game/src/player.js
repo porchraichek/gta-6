@@ -1,6 +1,6 @@
 // The player: on-foot movement, melee and guns, entering/driving/carjacking vehicles, health, money and respawning.
 import { WEAPONS, WEAPON_ORDER, START_MONEY } from './config.js';
-import { clamp, damp, angleDiff, rand } from './random.js';
+import { clamp } from './random.js';
 
 export function createPlayer(G) {
   const outfit = { style: 'hero', skin: 0xd9a27a, hair: 0x1b1410, shirt: 0xf4f4f0, pants: 0x1d3557, shoes: 0xe8e8e8 };
@@ -280,7 +280,7 @@ export function createPlayer(G) {
       P.reloadT = 1.15;
       G.audio?.reload();
     }
-    const wantFire = P.control && !P.dead && (w.auto ? input.state.lmb : input.state.lmbPressed || (input.state.lmb && P.attackT < -0.08 && false));
+    const wantFire = P.control && !P.dead && (w.auto ? input.state.lmb : input.state.lmbPressed);
     if (wantFire && P.attackT <= 0 && P.enterT <= 0) {
       if (P.weapon === 'fists') punch();
       else shoot();
@@ -424,6 +424,5 @@ export function createPlayer(G) {
     actor.dead = false;
   };
 
-  void damp; void angleDiff; void rand;
   return P;
 }
