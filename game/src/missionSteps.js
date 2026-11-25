@@ -156,7 +156,9 @@ export const kill = ({ at, count, weapon = 'fists', text, spread = 9, aggro = 26
     const G = m.G;
     const p = resolveAt(G, at, m);
     this.p = p;
-    m.enemies = G.gangs.spawn(p.x, p.z, count, { weapon, spread, aggro, health, armor, damage, boss });
+    this.list = G.gangs.spawn(p.x, p.z, count, { weapon, spread, aggro, health, armor, damage, boss });
+    if (boss) for (const a of this.list) a.boss = true;
+    m.enemies.push(...this.list);
     this.marker = G.markers.add({ x: p.x, z: p.z, color: 0xff4d5e, radius: Math.max(6, spread), blip: true, icon: 'enemy', pillar: false });
     m.cleanup.push(() => G.markers.remove(this.marker));
     m.objective = { text, x: p.x, z: p.z };
@@ -164,13 +166,13 @@ export const kill = ({ at, count, weapon = 'fists', text, spread = 9, aggro = 26
   },
   update(m) {
     const G = m.G;
-    const left = G.gangs.aliveCount(m.enemies);
-    m.objective.text = `${this.text} (${left} left)`;
-    const alive = m.enemies.find((a) => !a.dead && !a.removed);
+    const left = G.gangs.aliveCount(this.list);
+    m.objective.text = count > 1 ? `${this.text} (${left} left)` : this.text;
+    const alive = this.list.find((a) => !a.dead && !a.removed);
     if (alive) { m.objective.x = alive.x; m.objective.z = alive.z; this.marker.group.position.set(alive.x, 0.2, alive.z); this.marker.x = alive.x; this.marker.z = alive.z; }
     if (left === 0) return 'done';
   },
-  debugSolve(m) { killAll(m.G, m.enemies); },
+  debugSolve(m) { killAll(m.G, this.list); },
 });
 
 export const holdAt = ({ at, seconds, text, radius = 6 }) => ({
@@ -233,6 +235,7 @@ export const chase = ({ type, at, heading = 0, text, color = 0x8338ec, speedFact
     v.occupant = driver;
     v.ai = { type: 'mission-flee', state: {}, wp: null };
     m.chaseVehicle = v;
+    this.speed = typeof speedFactor === 'function' ? speedFactor(G.missions.state.flags) : speedFactor;
     this.marker = G.markers.add({ x: p.x, z: p.z, color: 0xff4d5e, radius: 3, blip: true, icon: 'enemy', pillar: true, height: 25 });
     m.cleanup.push(() => G.markers.remove(this.marker));
     m.objective = { text, x: p.x, z: p.z };
@@ -242,7 +245,11 @@ export const chase = ({ type, at, heading = 0, text, color = 0x8338ec, speedFact
   update(m, dt) {
     const G = m.G, v = this.v;
     this.timer -= dt;
-    if (v.dead) return 'done';
+    if (v.dead) {
+      if (v.occupant && !v.occupant.removed) G.actors.remove(v.occupant);
+      v.occupant = null;
+      return 'done';
+    }
     this.marker.group.position.set(v.x, 0.2, v.z);
     this.marker.x = v.x; this.marker.z = v.z;
     m.objective.x = v.x; m.objective.z = v.z;
@@ -263,7 +270,7 @@ export const chase = ({ type, at, heading = 0, text, color = 0x8338ec, speedFact
       v.ai.wp = best;
     }
     v.input.handbrake = false;
-    driveToward(G, v, v.ai.state, v.ai.wp[0], v.ai.wp[1], { speed: v.def.maxSpeed * speedFactor });
+    driveToward(G, v, v.ai.state, v.ai.wp[0], v.ai.wp[1], { speed: v.def.maxSpeed * this.speed });
     if (v.burning) v.input.throttle *= 0.5;
     if (d > escapeDist) return { fail: 'The target got away.' };
   },
